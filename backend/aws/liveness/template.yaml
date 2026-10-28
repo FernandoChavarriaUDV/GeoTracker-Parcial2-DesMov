@@ -1,0 +1,122 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: FC-ens2026 - Face Liveness y comparacion facial, clase del 17 de octubre
+Parameters:
+  BackendInstanceRoleName:
+    Type: String
+    Default: ''
+    Description: Rol EC2 existente del backend; vacio no concede permisos de invocacion
+Conditions:
+  HasBackendRole: !Not [!Equals [!Ref BackendInstanceRoleName, '']]
+Globals:
+  Function:
+    Runtime: nodejs24.x
+    Timeout: 20
+    MemorySize: 256
+    CodeUri: node/
+Resources:
+  GetSessionIdFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: getSessionId/index.handler
+      Policies:
+        - Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Action:
+                - rekognition:CreateFaceLivenessSession
+              Resource: '*'
+  GetSessionResultsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: getSessionResults/index.handler
+      Policies:
+        - Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Action: rekognition:GetFaceLivenessSessionResults
+              Resource: '*'
+  CompareFacesFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: compareFaces/index.handler
+      Policies:
+        - Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Action: rekognition:CompareFaces
+              Resource: '*'
+  BackendInvokePolicy:
+    Type: AWS::IAM::Policy
+    Condition: HasBackendRole
+    Properties:
+      PolicyName: InvokeCensusLivenessFunctions
+      Roles: [!Ref BackendInstanceRoleName]
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Action: lambda:InvokeFunction
+            Resource:
+              - !GetAtt GetSessionIdFunction.Arn
+              - !GetAtt GetSessionResultsFunction.Arn
+              - !GetAtt CompareFacesFunction.Arn
+  CreateLogs:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub /aws/lambda/${GetSessionIdFunction}
+      RetentionInDays: 14
+  ResultsLogs:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub /aws/lambda/${GetSessionResultsFunction}
+      RetentionInDays: 14
+  CompareLogs:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub /aws/lambda/${CompareFacesFunction}
+      RetentionInDays: 14
+  LivenessIdentityPool:
+    Type: AWS::Cognito::IdentityPool
+    Properties:
+      AllowUnauthenticatedIdentities: true
+  StreamingRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Federated: cognito-identity.amazonaws.com
+            Action: sts:AssumeRoleWithWebIdentity
+            Condition:
+              StringEquals:
+                cognito-identity.amazonaws.com:aud: !Ref LivenessIdentityPool
+              ForAnyValue:StringLike:
+                cognito-identity.amazonaws.com:amr: unauthenticated
+      Policies:
+        - PolicyName: OnlyLivenessStreaming
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action: rekognition:StartFaceLivenessSession
+                Resource: '*'
+  IdentityPoolRoles:
+    Type: AWS::Cognito::IdentityPoolRoleAttachment
+    Properties:
+      IdentityPoolId: !Ref LivenessIdentityPool
+      Roles:
+        unauthenticated: !GetAtt StreamingRole.Arn
+Outputs:
+  CreateFunctionArn:
+    Value: !GetAtt GetSessionIdFunction.Arn
+  ResultFunctionArn:
+    Value: !GetAtt GetSessionResultsFunction.Arn
+  CompareFunctionArn:
+    Value: !GetAtt CompareFacesFunction.Arn
+  IdentityPoolId:
+    Value: !Ref LivenessIdentityPool
+  Region:
+    Value: !Ref AWS::Region

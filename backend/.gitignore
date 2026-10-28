@@ -1,0 +1,15 @@
+target/
+.idea/
+.vscode/
+.env
+.env.*
+!.env.example
+*.pem
+*.jks
+*.keystore
+__pycache__/
+.local/
+*.iml
+*.log
+node_modules/
+.aws-sam/

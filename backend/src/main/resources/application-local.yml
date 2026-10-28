@@ -1,0 +1,17 @@
+# Base exclusiva para pruebas en esta PC. Producción continúa usando MySQL.
+spring:
+  datasource:
+    url: jdbc:h2:file:./.local/geotracker;MODE=MySQL;DB_CLOSE_ON_EXIT=FALSE
+    driver-class-name: org.h2.Driver
+    username: sa
+    password: ""
+  jpa:
+    hibernate:
+      ddl-auto: update
+  flyway:
+    enabled: false
+server:
+  address: 127.0.0.1
+  port: 8080
+liveness:
+  enabled: false

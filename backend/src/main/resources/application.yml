@@ -1,0 +1,29 @@
+spring:
+  application:
+    name: mobile-backend
+  datasource:
+    url: ${DB_URL:jdbc:mysql://localhost:3307/mobile_app?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC}
+    username: ${DB_USER:mobile_user}
+    password: ${DB_PASSWORD:mobile_password}
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+  flyway:
+    enabled: true
+server:
+  port: ${SERVER_PORT:8080}
+  forward-headers-strategy: framework
+  shutdown: graceful
+security:
+  jwt:
+    secret: ${JWT_SECRET:local-development-secret-change-me-2026}
+    expiration-seconds: ${JWT_EXPIRATION_SECONDS:86400}
+liveness:
+  enabled: ${LIVENESS_ENABLED:false}
+  region: ${AWS_REGION:us-east-1}
+  create-function: ${LIVENESS_CREATE_FUNCTION:}
+  result-function: ${LIVENESS_RESULT_FUNCTION:}
+  compare-function: ${LIVENESS_COMPARE_FUNCTION:}
+  confidence-threshold: ${LIVENESS_CONFIDENCE_THRESHOLD:90}
+  similarity-threshold: ${FACE_SIMILARITY_THRESHOLD:90}

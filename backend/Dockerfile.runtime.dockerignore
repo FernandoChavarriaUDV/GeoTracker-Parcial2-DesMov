@@ -1,0 +1,4 @@
+**
+!Dockerfile.runtime
+!target/
+!target/mobile-backend-0.0.1-SNAPSHOT.jar

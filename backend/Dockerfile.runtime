@@ -1,0 +1,8 @@
+# Build the tested JAR locally to avoid compiling alongside MySQL on a 2 GiB EC2.
+FROM eclipse-temurin:21-jre-alpine
+WORKDIR /app
+RUN addgroup -S spring && adduser -S spring -G spring
+COPY --chown=spring:spring target/mobile-backend-0.0.1-SNAPSHOT.jar app.jar
+USER spring:spring
+EXPOSE 8080
+ENTRYPOINT ["java", "-Xmx384m", "-jar", "/app/app.jar"]
