@@ -19,3 +19,10 @@
 *.pyc
 *.apk
 *.aab
+*.md
+/backend/aws/
+/backend/deploy/*
+!/backend/deploy/geotracker-install.sh
+/backend/postman/
+/backend/scripts/
+/backend/docker-compose.prod.yml

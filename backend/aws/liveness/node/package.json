@@ -1,9 +1,0 @@
-{
-  "name": "fc-ens2026-face-liveness",
-  "version": "1.0.0",
-  "private": true,
-  "description": "Funciones getSessionId y getSessionResults de la clase del 17 de octubre",
-  "engines": { "node": ">=24" },
-  "scripts": { "test": "node --test test/*.test.js" },
-  "dependencies": { "@aws-sdk/client-rekognition": "3.1155.0" }
-}
